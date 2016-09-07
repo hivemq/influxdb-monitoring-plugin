@@ -1,0 +1,12 @@
+== InfluxDB Monitoring Plugin
+
+=== Purpose
+
+This Hello World plugin can be used as a foundation for writing your (first) {hivemq-link}[HiveMQ] plugin. Although {hivemq-plugin-docs-archetype-link}[there is a Maven Archetype available] to generate your Hello World plugin right from the IDE, you can use this example project if you don't like to use the Archetype.
+
+We strongly recommend to read the {hivemq-plugin-docs-link}[HiveMQ Plugin Documentation] to grasp the core concepts of HiveMQ plugin development.
+
+=== Installation
+
+
+=== License
