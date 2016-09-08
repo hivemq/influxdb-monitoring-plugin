@@ -118,7 +118,7 @@ public class InfluxDbConfiguration extends ReloadingPropertiesReader {
     public int reportingInterval() {
         final String reportingInterval = properties.getProperty("reportingInterval");
         if (reportingInterval == null) {
-            log.warn("No port configured for InfluxDb, using default: 1");
+            log.warn("ReportingInterval property for InfluxDb not configured, using default: 1");
             return 1;
         }
         try {
