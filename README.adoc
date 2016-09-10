@@ -1,12 +1,78 @@
+:hivemq-link: http://www.hivemq.com
+:influxdb-github-link: https://github.com/influxdata/influxdb
+:hivemq-support: http://www.hivemq.com/support/
+:docker: https://www.docker.com/
+:kitematic: https://kitematic.com/
+:influx-docker-github: https://github.com/tutumcloud/influxdb
+
+
 == InfluxDB Monitoring Plugin
 
 === Purpose
 
-This Hello World plugin can be used as a foundation for writing your (first) {hivemq-link}[HiveMQ] plugin. Although {hivemq-plugin-docs-archetype-link}[there is a Maven Archetype available] to generate your Hello World plugin right from the IDE, you can use this example project if you don't like to use the Archetype.
+The InfluxDB Monitoring plugin allows {hivemq-link}[HiveMQ] to connect to an instance of {influxdb-github-link}[InfluxDB] for time series monitoring.
 
-We strongly recommend to read the {hivemq-plugin-docs-link}[HiveMQ Plugin Documentation] to grasp the core concepts of HiveMQ plugin development.
+=== Installation InfluxDB Monitoring Plugin
 
-=== Installation
+1. Copy the jar file `plugins/hivemq-influxdb-monitoring-plugin-<version>.jar` to your `[HIVEMQ_HOME]/plugins` folder
+2. Copy the `conf/influxdb.properties` file to your `[HIVEMQ_HOME]/conf` folder
+3. Modify the `influxdb.properties` file for your needs
+4. Done
+
+=== Quick Start InfluxDB
+
+1. Download and install {docker}[Docker] for your platform
+2. Download and install {kitematic}[Kitematic]
+3. Go to {influx-docker-github}[github.com/tutumcloud/influxdb] and follow the setup instructions
+4. Start Kitematic and create an InfluxDB container (under `My Images` tab)
+5. Rebind the ports to match your `influxdb.properties`
+6. Done
 
 
-=== License
+=== Usage
+1. Start InfluxDB
+2. Start HiveMQ
+
+=== Configuration
+
+The InfluxDB Monitoring plugin uses its own configuration file `influxdb.properties` which must be placed in HiveMQ's config folder.
+
+==== General Configuration
+
+|===
+| Config name | Required | Description | Default
+
+| mode | no | The mode configured for the InfluxDB sender. Possibilities are: http, tcp, udp | http
+| host | no | The host name of the InfluxDB instance. | localhost
+| port | no | The port number the InfluxDB instance is listening. | 8086
+| protocol | no | The protocol the InfluxDB sender uses in http mode. | http
+| auth | no | The authorization string to be used to connect to InfluxDB, of format username:password. | `no default`
+| prefix | no | The measurement prefix. | `no default`
+| database | no | The database name. | hivemq
+| reportingInterval | no | The reporting interval in seconds. | 1
+| connectTimeout | no | The connect and read timeout in seconds. | 5000
+|tags | no | The tags for each metric. Listed as a semicolon ( `;` ) separated list. | `no default`
+
+|===
+
+.Example Configuration
+[source]
+----
+mode:http
+host:localhost
+port:8086
+protocol:http
+auth:
+
+prefix:
+database:hivemq
+
+reportingInterval:1
+connectTimeout:5000
+
+tags:host=hivemq1
+----
+
+=== Need help?
+
+If you encounter any problems, we are happy to help. The best place to get in contact is our {hivemq-support}[support].
