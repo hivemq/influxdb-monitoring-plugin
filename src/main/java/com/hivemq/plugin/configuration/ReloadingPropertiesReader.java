@@ -25,7 +25,6 @@ import com.hivemq.spi.services.configuration.ValueChangedCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -53,9 +52,7 @@ abstract class ReloadingPropertiesReader {
         this.systemInformation = systemInformation;
     }
 
-    @PostConstruct
     public void postConstruct() {
-
         file = new File(systemInformation.getConfigFolder() + "/" + getFilename());
 
         try {
