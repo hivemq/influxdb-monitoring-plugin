@@ -2,6 +2,7 @@ package com.hivemq.plugin.callbacks;
 
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.ScheduledReporter;
 import com.google.common.collect.Sets;
 import com.hivemq.plugin.configuration.InfluxDbConfiguration;
 import com.hivemq.spi.callback.CallbackPriority;
@@ -29,7 +30,7 @@ public class InfluxDbReporting implements OnBrokerStart, OnBrokerStop {
     private final MetricRegistry metricRegistry;
     private final InfluxDbConfiguration configuration;
     private InfluxDbSender sender;
-    private InfluxDbReporter reporter;
+    private ScheduledReporter reporter;
 
     @Inject
     public InfluxDbReporting(final MetricRegistry metricRegistry,
@@ -61,8 +62,7 @@ public class InfluxDbReporting implements OnBrokerStart, OnBrokerStop {
         configuration.setRestartListener(new InfluxDbConfiguration.RestartListener() {
             @Override
             public void restart() {
-                reporter.stop();
-
+                reporter.close();
                 startReporting();
             }
         });
@@ -93,7 +93,6 @@ public class InfluxDbReporting implements OnBrokerStart, OnBrokerStop {
     }
 
     private void setupSender() {
-
         final String host = configuration.host();
         final int port = configuration.port();
         final String protocol = configuration.protocol();

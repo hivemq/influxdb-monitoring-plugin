@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.HashMap;
@@ -67,6 +68,12 @@ public class InfluxDbConfiguration extends ReloadingPropertiesReader {
         addCallback("auth", callback);
         addCallback("connectTimeout", callback);
         addCallback("tags", callback);
+    }
+
+    @Override
+    @PostConstruct
+    public void postConstruct() {
+        super.postConstruct();
     }
 
     @NotNull
