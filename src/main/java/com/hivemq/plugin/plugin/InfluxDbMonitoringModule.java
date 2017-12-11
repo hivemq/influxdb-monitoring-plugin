@@ -21,12 +21,12 @@ import com.hivemq.spi.PluginEntryPoint;
 import com.hivemq.spi.plugin.meta.Information;
 
 
-@Information(name = "InfluxDb Monitoring", author = "Christoph Schäbel", version = "1.0.0")
+@Information(name = "InfluxDb Monitoring", author = "dc-square GmbH", version = "1.0.1")
 public class InfluxDbMonitoringModule extends HiveMQPluginModule {
 
     /**
-     * This method is provided to execute some custom plugin configuration stuff. Is is the place
-     * to execute Google Guice bindings,etc if needed.
+     * This method is provided to execute some custom plugin configuration stuff. It is the place
+     * to execute Google Guice bindings, etc if needed.
      */
     @Override
     protected void configurePlugin() {

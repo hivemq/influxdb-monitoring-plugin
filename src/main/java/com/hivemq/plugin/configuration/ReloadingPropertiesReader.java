@@ -15,6 +15,7 @@
  */
 package com.hivemq.plugin.configuration;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
@@ -32,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Christoph Schäbel
@@ -42,9 +44,23 @@ abstract class ReloadingPropertiesReader {
 
     private final PluginExecutorService pluginExecutorService;
     private final SystemInformation systemInformation;
-    private File file;
     Properties properties;
+    private File file;
     private Map<String, List<ValueChangedCallback<String>>> callbacks = Maps.newHashMap();
+
+
+    private final static String ENV_VAR_HOST = "HIVEMQ_INFLUX_DB_PLUGIN_HOST";
+    private final static String ENV_VAR_PORT = "HIVEMQ_INFLUX_DB_PLUGIN_PORT";
+    private final static String ENV_VAR_AUTH = "HIVEMQ_INFLUX_DB_PLUGIN_AUTH";
+
+    private final static String ENV_VAR_PROOCOL = "HIVEMQ_INFLUX_DB_PLUGIN_PROTOCOL";
+    private final static String ENV_VAR_MODE = "HIVEMQ_INFLUX_DB_PLUGIN_MODE";
+    private final static String ENV_VAR_PREFIX = "HIVEMQ_INFLUX_DB_PLUGIN_PREFIX";
+    private final static String ENV_VAR_DATABASE = "HIVEMQ_INFLUX_DB_PLUGIN_DATABASE";
+    private final static String ENV_VAR_REPORTING_INTERVAL = "HIVEMQ_INFLUX_DB_PLUGIN_REPORTING_INTERVAL";
+    private final static String ENV_VAR_CONNECTION_TIMEOUT = "HIVEMQ_INFLUX_DB_PLUGIN_CONNECTION_TIMEOUT";
+    private final static String ENV_VAR_TAGS = "HIVEMQ_INFLUX_DB_PLUGIN_TAGS";
+
 
     ReloadingPropertiesReader(final PluginExecutorService pluginExecutorService,
                               final SystemInformation systemInformation) {
@@ -52,12 +68,15 @@ abstract class ReloadingPropertiesReader {
         this.systemInformation = systemInformation;
     }
 
+
+
+    //do not put a postconstruct here, else this method gets called twice
     public void postConstruct() {
         file = new File(systemInformation.getConfigFolder() + "/" + getFilename());
+        properties = new Properties();
+        try  {
+            properties = loadProperties();
 
-        try {
-            properties = new Properties();
-            properties.load(new FileReader(file));
         } catch (IOException e) {
             log.error("Not able to load configuration file {}", file.getAbsolutePath());
         }
@@ -74,9 +93,78 @@ abstract class ReloadingPropertiesReader {
         if (properties == null) {
             return null;
         }
-
         return properties.getProperty(key);
     }
+
+    /**
+     * Loads Properties from configuration file, it does NOT set it but return it
+     * @return loaded Properties
+     * @throws IOException this is thrown and not caught inside the method because the log level in error case is different on starting the plugin than on reload
+     */
+    private Properties loadProperties() throws IOException{
+        try (final FileReader in = new FileReader(file)) {
+            final Properties props = new Properties();
+            props.load(in);
+            overwritePropertiesWithEnvVar(props);
+            return props;
+        }
+
+
+    }
+
+    protected Properties overwritePropertiesWithEnvVar(@NotNull Properties props){
+        checkNotNull(props, "Props must not be null");
+
+
+        if(System.getenv(ENV_VAR_HOST)!= null){
+            props.put(InfluxDbConfiguration.HOST, System.getenv(ENV_VAR_HOST));
+        }
+
+        if(System.getenv(ENV_VAR_PORT)!= null){
+            props.put(InfluxDbConfiguration.PORT, System.getenv(ENV_VAR_PORT));
+        }
+
+        if(System.getenv(ENV_VAR_AUTH)!= null){
+            props.put(InfluxDbConfiguration.AUTH, System.getenv(ENV_VAR_AUTH));
+        }
+
+        if(System.getenv(ENV_VAR_MODE)!=null){
+            props.put(InfluxDbConfiguration.MODE, System.getenv(ENV_VAR_MODE));
+        }
+
+        if(System.getenv(ENV_VAR_PROOCOL)!=null){
+            props.put(InfluxDbConfiguration.PROTOCOL, System.getenv(ENV_VAR_PROOCOL));
+        }
+
+        if(System.getenv(ENV_VAR_PREFIX)!=null){
+            props.put(InfluxDbConfiguration.PREFIX, System.getenv(ENV_VAR_PREFIX));
+        }
+
+        if(System.getenv(ENV_VAR_DATABASE)!=null){
+            props.put(InfluxDbConfiguration.DATABASE, System.getenv(ENV_VAR_DATABASE));
+        }
+
+        if(System.getenv(ENV_VAR_REPORTING_INTERVAL)!=null){
+            props.put(InfluxDbConfiguration.REPORTING_INTERVAL, System.getenv(ENV_VAR_REPORTING_INTERVAL));
+        }
+
+        if(System.getenv(ENV_VAR_CONNECTION_TIMEOUT)!=null){
+            props.put(InfluxDbConfiguration.CONNECT_TIMEOUT, System.getenv(ENV_VAR_CONNECTION_TIMEOUT));
+        }
+
+        if(System.getenv(ENV_VAR_TAGS)!=null){
+            props.put(InfluxDbConfiguration.TAGS, System.getenv(ENV_VAR_TAGS));
+        }
+
+
+
+
+
+        return props;
+    }
+
+
+
 
     @NotNull
     public abstract String getFilename();
@@ -84,25 +172,24 @@ abstract class ReloadingPropertiesReader {
     /**
      * Reloads the specified .properties file
      */
-    private void reload() {
+    @VisibleForTesting
+    void reload() {
 
         Map<String, String> oldValues = getCurrentValues();
 
-        try {
-            final Properties props = new Properties();
-            props.load(new FileReader(file));
-            properties = props;
-
+        try{
+            properties = loadProperties();
             Map<String, String> newValues = getCurrentValues();
-
             logChanges(oldValues, newValues);
-
         } catch (IOException e) {
             log.debug("Not able to reload configuration file {}", this.file.getAbsolutePath());
         }
     }
 
-    void addCallback(final String propertyName, final ValueChangedCallback<String> changedCallback) {
+    void addCallback(@NotNull final String propertyName,@NotNull final ValueChangedCallback<String> changedCallback) {
+      checkNotNull(propertyName, "Property name must not be null");
+      checkNotNull(changedCallback, "Changed callback must not be null");
+
 
         if (!callbacks.containsKey(propertyName)) {
             callbacks.put(propertyName, Lists.<ValueChangedCallback<String>>newArrayList());
@@ -136,18 +223,28 @@ abstract class ReloadingPropertiesReader {
 
         for (Map.Entry<String, String> stringStringEntry : difference.entriesOnlyOnLeft().entrySet()) {
             log.debug("Plugin configuration {} removed", stringStringEntry.getKey(), stringStringEntry.getValue());
+            if (callbacks.containsKey(stringStringEntry.getKey())) {
+                for (ValueChangedCallback<String> callback : callbacks.get(stringStringEntry.getKey())) {
+                    callback.valueChanged(properties.getProperty(stringStringEntry.getValue()));
+                }
+            }
         }
 
         for (Map.Entry<String, String> stringStringEntry : difference.entriesOnlyOnRight().entrySet()) {
-            log.debug("Plugin configuration {} added: {}", stringStringEntry.getValue(), stringStringEntry.getValue());
+            log.debug("Plugin configuration {} added: {}", stringStringEntry.getKey(), stringStringEntry.getValue());
+            if (callbacks.containsKey(stringStringEntry.getKey())) {
+                for (ValueChangedCallback<String> callback : callbacks.get(stringStringEntry.getKey())) {
+                    callback.valueChanged(stringStringEntry.getValue());
+                }
+            }
         }
+
     }
 
     @NotNull
-    public Properties getProperties() {
+    Properties getProperties() {
         return properties;
     }
-
 
 
 }
