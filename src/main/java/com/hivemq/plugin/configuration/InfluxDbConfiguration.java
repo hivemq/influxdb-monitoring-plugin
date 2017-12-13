@@ -113,7 +113,12 @@ public class InfluxDbConfiguration extends ReloadingPropertiesReader {
             return 8086;
         }
         try {
-            return Integer.parseInt(portProp);
+            final int port = Integer.parseInt(portProp);
+            if(port<=0){
+                log.error("Invalid value {} for InfluxDB property port, using default: 8086", port);
+                return 8086;
+            }
+            return port;
         } catch (NumberFormatException e) {
             log.error("Invalid format {} for InfluxDB property port, using default: 8086", portProp);
             return 8086;
@@ -139,7 +144,13 @@ public class InfluxDbConfiguration extends ReloadingPropertiesReader {
             return 1;
         }
         try {
-            return Integer.parseInt(reportingInterval);
+            final int reporting = Integer.parseInt(reportingInterval);
+            if(reporting <=0){
+                log.error("Invalid value {} for InfluxDB property reportingInterval, using default: 1", reporting);
+                return 1;
+            }
+
+            return reporting;
         } catch (NumberFormatException e) {
             log.error("Invalid format {} for InfluxDB property reportingInterval, using default: 1", reportingInterval);
             return 1;
@@ -172,7 +183,14 @@ public class InfluxDbConfiguration extends ReloadingPropertiesReader {
             return 5000;
         }
         try {
-            return Integer.parseInt(connectTimeout);
+            final int connectionTimeout = Integer.parseInt(connectTimeout);
+
+            if(connectionTimeout <= 0){
+                log.error("Invalid value {} for InfluxDB property connectTimeout, using default: 5000", connectionTimeout);
+                return 5000;
+            }
+            return connectionTimeout;
+
         } catch (NumberFormatException e) {
             log.error("Invalid format {} for InfluxDB property connectTimeout, using default: 5000", connectTimeout);
             return 5000;
