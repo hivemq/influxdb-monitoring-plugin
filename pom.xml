@@ -18,7 +18,7 @@
 
     <groupId>com.hivemq.plugin</groupId>
     <artifactId>hivemq-influxdb-monitoring-plugin</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 
     <description>InfluxDB monitoring plugin</description>
 
