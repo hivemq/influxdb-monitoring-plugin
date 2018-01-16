@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.HashMap;
@@ -40,6 +41,16 @@ public class InfluxDbConfiguration extends ReloadingPropertiesReader {
 
     private static final Logger log = LoggerFactory.getLogger(InfluxDbConfiguration.class);
     public static final HashMap<String, String> EMPTY_MAP = new HashMap<>();
+    public static final String PORT = "port";
+    public static final String HOST = "host";
+    public static final String MODE = "mode";
+    public static final String PROTOCOL = "protocol";
+    public static final String REPORTING_INTERVAL = "reportingInterval";
+    public static final String PREFIX = "prefix";
+    public static final String DATABASE = "database";
+    public static final String CONNECT_TIMEOUT = "connectTimeout";
+    public static final String AUTH = "auth";
+    public static final String TAGS = "tags";
 
     private RestartListener listener;
 
@@ -69,9 +80,15 @@ public class InfluxDbConfiguration extends ReloadingPropertiesReader {
         addCallback("tags", callback);
     }
 
+    @Override
+    @PostConstruct
+    public void postConstruct() {
+        super.postConstruct();
+    }
+
     @NotNull
     public String mode() {
-        final String mode = getProperty("mode");
+        final String mode = getProperty(MODE);
         if (mode == null) {
             log.warn("No mode configured for InfluxDb, using default: HTTP");
             return "http";
@@ -81,7 +98,7 @@ public class InfluxDbConfiguration extends ReloadingPropertiesReader {
 
     @NotNull
     public String host() {
-        final String host = getProperty("host");
+        final String host = getProperty(HOST);
         if (host == null) {
             log.warn("No host configured for InfluxDb, using default: localhost");
             return "localhost";
@@ -90,13 +107,18 @@ public class InfluxDbConfiguration extends ReloadingPropertiesReader {
     }
 
     public int port() {
-        final String portProp = properties.getProperty("port");
+        final String portProp = properties.getProperty(PORT);
         if (portProp == null) {
             log.warn("No port configured for InfluxDb, using default: 8086");
             return 8086;
         }
         try {
-            return Integer.parseInt(portProp);
+            final int port = Integer.parseInt(portProp);
+            if(port<=0){
+                log.error("Invalid value {} for InfluxDB property port, using default: 8086", port);
+                return 8086;
+            }
+            return port;
         } catch (NumberFormatException e) {
             log.error("Invalid format {} for InfluxDB property port, using default: 8086", portProp);
             return 8086;
@@ -105,7 +127,7 @@ public class InfluxDbConfiguration extends ReloadingPropertiesReader {
 
     @NotNull
     public String protocol() {
-        final String protocol = getProperty("protocol");
+        final String protocol = getProperty(PROTOCOL);
         if (protocol == null) {
             if (mode().equals("http")) {
                 log.warn("No protocol configured for InfluxDb, using default: http");
@@ -116,13 +138,19 @@ public class InfluxDbConfiguration extends ReloadingPropertiesReader {
     }
 
     public int reportingInterval() {
-        final String reportingInterval = properties.getProperty("reportingInterval");
+        final String reportingInterval = properties.getProperty(REPORTING_INTERVAL);
         if (reportingInterval == null) {
             log.warn("ReportingInterval property for InfluxDb not configured, using default: 1");
             return 1;
         }
         try {
-            return Integer.parseInt(reportingInterval);
+            final int reporting = Integer.parseInt(reportingInterval);
+            if(reporting <=0){
+                log.error("Invalid value {} for InfluxDB property reportingInterval, using default: 1", reporting);
+                return 1;
+            }
+
+            return reporting;
         } catch (NumberFormatException e) {
             log.error("Invalid format {} for InfluxDB property reportingInterval, using default: 1", reportingInterval);
             return 1;
@@ -131,7 +159,7 @@ public class InfluxDbConfiguration extends ReloadingPropertiesReader {
 
     @NotNull
     public String prefix() {
-        final String prefix = getProperty("prefix");
+        final String prefix = getProperty(PREFIX);
         if (prefix == null) {
             return "";
         }
@@ -140,7 +168,7 @@ public class InfluxDbConfiguration extends ReloadingPropertiesReader {
 
     @NotNull
     public String database() {
-        final String database = getProperty("database");
+        final String database = getProperty(DATABASE);
         if (database == null) {
             log.warn("No database configured for InfluxDb, using default: hivemq");
             return "hivemq";
@@ -149,13 +177,20 @@ public class InfluxDbConfiguration extends ReloadingPropertiesReader {
     }
 
     public int connectTimeout() {
-        final String connectTimeout = properties.getProperty("connectTimeout");
+        final String connectTimeout = properties.getProperty(CONNECT_TIMEOUT);
         if (connectTimeout == null) {
             log.warn("No connectTimeout configured for InfluxDb, using default: 5000");
             return 5000;
         }
         try {
-            return Integer.parseInt(connectTimeout);
+            final int connectionTimeout = Integer.parseInt(connectTimeout);
+
+            if(connectionTimeout <= 0){
+                log.error("Invalid value {} for InfluxDB property connectTimeout, using default: 5000", connectionTimeout);
+                return 5000;
+            }
+            return connectionTimeout;
+
         } catch (NumberFormatException e) {
             log.error("Invalid format {} for InfluxDB property connectTimeout, using default: 5000", connectTimeout);
             return 5000;
@@ -164,7 +199,7 @@ public class InfluxDbConfiguration extends ReloadingPropertiesReader {
 
     @Nullable
     public String auth() {
-        return getProperty("auth");
+        return getProperty(AUTH);
     }
 
     @Override
@@ -179,7 +214,7 @@ public class InfluxDbConfiguration extends ReloadingPropertiesReader {
     @NotNull
     public Map<String, String> tags() {
 
-        final String tags = getProperty("tags");
+        final String tags = getProperty(TAGS);
         if (tags == null) {
             return EMPTY_MAP;
         }
