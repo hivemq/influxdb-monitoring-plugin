@@ -48,7 +48,9 @@ public class InfluxDbReporting implements OnBrokerStart, OnBrokerStop {
 
     @Override
     public void onBrokerStop() {
-        reporter.stop();
+        if (reporter != null) {
+            reporter.stop();
+        }
     }
 
     @Override
