@@ -4,9 +4,11 @@
 :docker: https://www.docker.com/
 :kitematic: https://kitematic.com/
 :influx-docker-github: https://github.com/tutumcloud/influxdb
-
+:extension: https://github.com/hivemq/hivemq-influxdb-extension
 
 == InfluxDB Monitoring Plugin
+
+NOTE: HiveMQ 4 uses a new extension system. This HiveMQ 3 plugin is not compatible with HiveMQ 4. The new version can be found {extension}[here].
 
 === Purpose
 
