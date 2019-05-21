@@ -84,3 +84,11 @@ tags:host=hivemq1
 === Need help?
 
 If you encounter any problems, we are happy to help. The best place to get in contact is our {hivemq-support}[support].
+
+= Contributing
+
+If you want to contribute to HiveMQ InfluxDB Monitoring Plugin, see the link:CONTRIBUTING.md[contribution guidelines].
+
+= License
+
+HiveMQ InfluxDB Monitoring Plugin is licensed under the `APACHE LICENSE, VERSION 2.0`. A copy of the license can be found link:LICENSE.txt[here].
